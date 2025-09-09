@@ -1,19 +1,21 @@
 #pragma once
 
+#include "Headers.h"
 #include <map>
 #include <string>
 class Request
 {
 private:
-    void parse(const char *);
+    std::string http_message;
+    void parse();
 
 public:
-    explicit Request(const char *);
+    explicit Request(std::string http_message);
     ~Request();
     std::string method;
     std::string path;
     std::string body;
-    std::map<std::string, std::string> headers;
+    Headers headers;
     std::string query_params;
     std::string cookies;
     std::string protocol;

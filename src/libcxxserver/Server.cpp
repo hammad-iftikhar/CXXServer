@@ -1,27 +1,31 @@
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <cstring>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <thread>
+#include <unistd.h>
 
-#include "Server.hpp"
+#include "include/Server.h"
 
-Server::Server(int port)
+Server::Server()
 {
-    this->port = port;
     this->handler = Handler();
 }
 
 Server::~Server()
 {
-    close(server_fd);
+    if (server_fd > 0)
+    {
+        close(server_fd);
+    }
 }
 
-int Server::start()
+int Server::listen(int port, void (*cb)())
 {
+
+    this->port = port;
+
     struct sockaddr_in server_addr, client_addr;
 
     socklen_t client_addr_len = sizeof(client_addr);
@@ -50,14 +54,14 @@ int Server::start()
     }
 
     // Listen for incoming connections
-    if (listen(server_fd, BACKLOG) < 0)
+    if (::listen(server_fd, BACKLOG) < 0)
     {
         perror("listen failed");
         close(server_fd);
         return 1;
     }
 
-    std::cout << "Server listening on port " << this->port << "\n";
+    cb();
 
     // Accept client connections
     while (true)
@@ -74,27 +78,27 @@ int Server::start()
     }
 }
 
-void Server::get(const char *path, handler_cb cb)
+void Server::get(std::string path, handler_cb cb)
 {
     this->handler.register_handler(path, "get", cb);
 }
 
-void Server::post(const char *path, handler_cb cb)
+void Server::post(std::string path, handler_cb cb)
 {
     this->handler.register_handler(path, "post", cb);
 }
 
-void Server::put(const char *path, handler_cb cb)
+void Server::put(std::string path, handler_cb cb)
 {
     this->handler.register_handler(path, "put", cb);
 }
 
-void Server::del(const char *path, handler_cb cb)
+void Server::del(std::string path, handler_cb cb)
 {
     this->handler.register_handler(path, "delete", cb);
 }
 
-void Server::patch(const char *path, handler_cb cb)
+void Server::patch(std::string path, handler_cb cb)
 {
     this->handler.register_handler(path, "patch", cb);
 }

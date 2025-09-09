@@ -1,6 +1,6 @@
 #include <string>
 
-#include "utils.hpp"
+#include "include/utils.h"
 
 std::vector<std::string> split_string(const std::string &text, const std::string &separator, bool keep_empty)
 {
@@ -47,4 +47,12 @@ std::pair<std::string, std::string> split_once(const std::string &text, const st
     std::string left = text.substr(0, pos);
     std::string right = text.substr(pos + separator.size());
     return {left, right};
+}
+
+std::string to_lowercase(std::string text)
+{
+    std::transform(text.begin(), text.end(), text.begin(),
+                   [](unsigned char c)
+                   { return std::tolower(c); });
+    return text;
 }

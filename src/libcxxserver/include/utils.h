@@ -7,3 +7,5 @@
 std::vector<std::string> split_string(const std::string &text, const std::string &separator, bool keep_empty = false);
 
 std::pair<std::string, std::string> split_once(const std::string &text, const std::string &separator);
+
+std::string to_lowercase(std::string text);

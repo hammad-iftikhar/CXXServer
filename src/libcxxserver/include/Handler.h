@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
 #include <netinet/in.h>
+#include <string>
 #include <vector>
 
-#include "CXXServer.hpp"
+#include "cxxserver.h"
 
 struct Handle
 {
@@ -21,6 +21,6 @@ private:
 public:
     explicit Handler();
     ~Handler();
-    void register_handler(std::string, std::string, handler_cb);
-    void handle(int, sockaddr_in);
+    void register_handler(std::string path, std::string method, handler_cb cb);
+    void handle(int client_fd, sockaddr_in client_addr);
 };

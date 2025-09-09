@@ -1,13 +1,15 @@
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <cstring>
+#include <iostream>
+#include <string>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "CXXServer.hpp"
-#include "Handler.hpp"
-#include "Request.hpp"
+#include "include/Handler.h"
+#include "include/Request.h"
+#include "include/Response.h"
+#include "include/cxxserver.h"
 
 Handler::Handler() {}
 
@@ -27,18 +29,21 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
 
     std::cout << "New connection from " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << "\n";
 
-    const char *msg = "Hello from server\n";
-    send(client_fd, msg, strlen(msg), 0);
-
     char buffer[MAX_REQUEST_BYTES];
 
     int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-    if (bytes > 0)
+    if (bytes <= 0)
     {
-        buffer[bytes] = '\0';
+        close(client_fd);
+        return;
     }
+    buffer[bytes] = '\0';
 
-    Request request = Request(buffer);
+    Request request = Request(std::string(buffer));
+
+    Response response = Response(client_fd, request);
+
+    bool route_found = false;
 
     for (int i = 0; i < handlers.size(); i++)
     {
@@ -46,15 +51,16 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
 
         if (hdl.path == request.path && hdl.method == request.method)
         {
-            const char *resp = hdl.cb();
-
-            if (resp)
-            {
-                send(client_fd, resp, strlen(resp), 0);
-            }
-
+            hdl.cb(request, response);
+            route_found = true;
             break;
         }
+    }
+
+    if (!route_found)
+    {
+        response.status(404);
+        response.send();
     }
 
     close(client_fd);
