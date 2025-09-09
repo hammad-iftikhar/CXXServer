@@ -1,8 +1,9 @@
 #pragma once
 
-#include <map>
 #include <string>
 #include <netinet/in.h>
+#include <vector>
+
 #include "CXXServer.hpp"
 
 struct Handle
@@ -15,11 +16,11 @@ struct Handle
 class Handler
 {
 private:
-    std::map<std::string, struct Handle> handlers;
+    std::vector<struct Handle> handlers;
 
 public:
     explicit Handler();
     ~Handler();
-    void register_handler(const char *, const char *, handler_cb);
+    void register_handler(std::string, std::string, handler_cb);
     void handle(int, sockaddr_in);
 };

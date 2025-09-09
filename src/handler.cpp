@@ -5,16 +5,21 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "CXXServer.hpp"
 #include "Handler.hpp"
+#include "Request.hpp"
 
 Handler::Handler() {}
 
 Handler::~Handler() {}
 
-void Handler::register_handler(const char *path, const char *method, handler_cb cb)
+void Handler::register_handler(std::string path, std::string method, handler_cb cb)
 {
     std::string key(path);
-    this->handlers[key] = Handle{cb, std::string(method), std::string(path)};
+
+    Handle hdl = Handle{cb, std::string(method), std::string(path)};
+
+    this->handlers.push_back(hdl);
 }
 
 void Handler::handle(int client_fd, sockaddr_in client_addr)
@@ -25,7 +30,7 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
     const char *msg = "Hello from server\n";
     send(client_fd, msg, strlen(msg), 0);
 
-    char buffer[1024];
+    char buffer[MAX_REQUEST_BYTES];
 
     int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
     if (bytes > 0)
@@ -33,15 +38,22 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
         buffer[bytes] = '\0';
     }
 
-    std::cout << "Received buffer: " << buffer << std::endl;
+    Request request = Request(buffer);
 
-    auto it = handlers.find("/");
-    if (it != handlers.end() && it->second.cb)
+    for (int i = 0; i < handlers.size(); i++)
     {
-        const char *resp = it->second.cb();
-        if (resp)
+        Handle hdl = handlers[i];
+
+        if (hdl.path == request.path && hdl.method == request.method)
         {
-            send(client_fd, resp, strlen(resp), 0);
+            const char *resp = hdl.cb();
+
+            if (resp)
+            {
+                send(client_fd, resp, strlen(resp), 0);
+            }
+
+            break;
         }
     }
 
