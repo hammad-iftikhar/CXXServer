@@ -59,7 +59,7 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
 
     if (!route_found)
     {
-        response.status(404);
+        response.status(StatusCode::NOT_FOUND);
         response.send();
     }
 

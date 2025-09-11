@@ -12,7 +12,9 @@ void index_handle(Request req, Response res)
 
     res.headers.set("Location", "/");
 
-    res.send();
+    res.headers.set("Content-Type", "application/json");
+
+    res.send("{\"message\": \"Hello, World!\"}");
 }
 
 void cb()

@@ -6,9 +6,10 @@
 #include "include/Response.h"
 
 Response::Response(int client_fd, Request &request)
-    : client_fd(client_fd), status_code(200), request(request)
+    : client_fd(client_fd), status_code(StatusCode::OK), request(request)
 {
     headers = Headers();
+    set_default_headers();
 }
 
 Response::~Response()
@@ -23,7 +24,7 @@ void Response::set_default_headers()
     headers.set("Server", "CXXServer");
 }
 
-void Response::send()
+void Response::send(std::string body)
 {
     std::string status_code_string = "OK";
 
@@ -32,11 +33,9 @@ void Response::send()
         status_code_string = "Not Found";
     }
 
-    std::string body = status_code_string + "\n";
+    std::string body_string = body + "\n";
 
-    set_default_headers();
-
-    headers.set("Content-Length", std::to_string(body.size()));
+    headers.set("Content-Length", std::to_string(body_string.size()));
 
     std::string response =
         request.http_version + " " + std::to_string(status_code) + " " + status_code_string + "\r\n";
@@ -44,7 +43,7 @@ void Response::send()
     response += headers.to_string();
 
     response += "\r\n";
-    response += body;
+    response += body_string;
 
     // Ensure entire response is written
     const char *data = response.c_str();
@@ -63,7 +62,12 @@ void Response::send()
     return;
 }
 
-void Response::status(int status_code)
+void Response::send()
+{
+    send("");
+}
+
+void Response::status(StatusCode status_code)
 {
     this->status_code = status_code;
 }
