@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Headers.h"
-#include <map>
+#include <cstddef>
 #include <string>
 class Request
 {
@@ -12,9 +12,12 @@ private:
 public:
     explicit Request(std::string http_message);
     ~Request();
+    static Request create_dummy();
     std::string method;
     std::string path;
     std::string body;
+    std::string body_temp_path;
+    std::size_t body_size = 0;
     Headers headers;
     std::string query_params;
     std::string cookies;

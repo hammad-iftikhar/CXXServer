@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <unistd.h>
 #include <utility>
 
 #include "include/Headers.h"
@@ -14,6 +15,10 @@ Request::Request(std::string http_message)
 
 Request::~Request()
 {
+    if (!body_temp_path.empty())
+    {
+        unlink(body_temp_path.c_str());
+    }
 }
 
 void Request::parse()
@@ -66,4 +71,9 @@ void Request::parse()
     }
 
     // Parse body
+}
+
+Request Request::create_dummy()
+{
+    return Request("GET / HTTP/1.1\r\n\r\n");
 }

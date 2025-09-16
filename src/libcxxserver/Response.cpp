@@ -1,5 +1,6 @@
 #include <string>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "include/Headers.h"
 #include "include/Request.h"
@@ -28,9 +29,22 @@ void Response::send(std::string body)
 {
     std::string status_code_string = "OK";
 
-    if (status_code == 404)
+    switch (status_code)
     {
+    case StatusCode::NOT_FOUND:
         status_code_string = "Not Found";
+    case StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE:
+        status_code_string = "Request Header Fields Too Large";
+    case StatusCode::NOT_IMPLEMENTED:
+        status_code_string = "Not Implemented";
+    case StatusCode::BAD_REQUEST:
+        status_code_string = "Bad Request";
+    case StatusCode::PAYLOAD_TOO_LARGE:
+        status_code_string = "Payload Too Large";
+    case StatusCode::INTERNAL_SERVER_ERROR:
+        status_code_string = "Internal Server Error";
+    default:
+        break;
     }
 
     std::string body_string = body + "\n";
@@ -59,6 +73,7 @@ void Response::send(std::string body)
         sent += static_cast<size_t>(n);
     }
 
+    close(client_fd);
     return;
 }
 
