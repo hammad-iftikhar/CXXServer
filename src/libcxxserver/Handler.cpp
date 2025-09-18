@@ -59,12 +59,7 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
 
             response.status(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 
-            response.send("Headers too large");
-
-            close(client_fd);
-
-            std::cout << "Connection closed. \n";
-            return;
+            return response.send("Headers too large");
         }
 
         header_end_pos = recv_buffer.find("\r\n\r\n");
@@ -141,19 +136,23 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
                     return response.send("Payload too large");
                 }
             }
+            // Parse small body immediately
+            request.parse_body();
         }
         else
         {
             // Spill to temp file to avoid large heap usage
-            char tmpPath[] = "/tmp/cxxserver_body_XXXXXX";
-            int tmpFd = mkstemp(tmpPath);
+            std::string tmp_template = TEMP_FILE;
+            std::vector<char> tmpl(tmp_template.begin(), tmp_template.end());
+            tmpl.push_back('\0');
+            int tmpFd = mkstemp(tmpl.data());
             if (tmpFd == -1)
             {
                 response.status(StatusCode::INTERNAL_SERVER_ERROR);
                 return response.send("Failed to create temp file");
             }
 
-            request.body_temp_path = std::string(tmpPath);
+            request.body_temp_path = std::string(tmpl.data());
 
             // Write any already read bytes first
             if (!initial_body.empty())
@@ -183,6 +182,9 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
                 }
             }
             close(tmpFd);
+
+            // Parse large body from temp file
+            request.parse_body();
         }
     }
 
