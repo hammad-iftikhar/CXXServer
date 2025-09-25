@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(GLOB_RECURSE CXXSERVER_LIB_SOURCES CONFIGURE_DEPENDS "src/libcxxserver/*.cpp")
 
 # Create a library from all the files in the src directory except main.cpp
-add_library(cxxserver
+add_library(cxxserver SHARED
     ${CXXSERVER_LIB_SOURCES}
 )
 
@@ -32,3 +32,7 @@ add_executable(main src/main.cpp)
 # Link the threads library to the executable
 find_package(Threads REQUIRED)
 target_link_libraries(main PRIVATE cxxserver Threads::Threads)
+set_target_properties(main PROPERTIES 
+    BUILD_RPATH "@loader_path"
+    INSTALL_RPATH "@loader_path"
+)

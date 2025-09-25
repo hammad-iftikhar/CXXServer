@@ -13,17 +13,17 @@ A minimal C++20 HTTP server with a tiny routing API. The example app listens on 
 Run from the project root:
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug | cat && cmake --build build -j | cat
+./build.sh [release | debug]
 ```
 
-This generates the build into the `build/` directory and produces the `cxxserver` executable.
+This generates the build into the `build/` (`build-relase/` in case of release build) directory and produces the `main` executable with libcxxserver library linked.
 
 ### Run
 
 From the project root after building:
 
 ```bash
-./build/cxxserver
+./build/main
 ```
 
 You should see output similar to:
@@ -36,4 +36,3 @@ Server listening on port 3000
 
 - Default port: `3000` (see `src/main.cpp`).
 - Backlog: `5` (see `include/Server.hpp`).
-- The example registers a handler for `GET /` and returns a simple string.
