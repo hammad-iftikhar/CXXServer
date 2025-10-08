@@ -17,10 +17,6 @@ void index_handle(Request req, Response res)
     std::cout << "age=" << req.query["age"][0] << std::endl;
     std::cout << "age=" << req.query["age"][1] << std::endl;
 
-    std::cout << "host" << req.host << std::endl;
-
-    res.headers.set("Location", "/");
-
     res.headers.set("Content-Type", "application/json");
 
     res.send("{\"message\": \"Hello, World!\"}");
@@ -61,11 +57,11 @@ void cb()
     std::cout << "Server listening on port " << PORT << "\n";
 }
 
-void test_handle(Request req, Response res)
+void user_handle(Request req, Response res)
 {
     std::cout << "test_handle" << std::endl;
     std::cout << "uid=" << req.params["uid"] << std::endl;
-    std::cout << "name=" << req.params["name"] << std::endl;
+    std::cout << "pid=" << req.params["pid"] << std::endl;
     res.headers.set("Content-Type", "application/json");
     res.send("{\"status\":\"ok\"}");
 }
@@ -76,7 +72,7 @@ int main()
 
     server.get("/", index_handle);
     server.post("/upload", upload_handle);
-    server.put("/test/{uid}/game/{name}", test_handle);
+    server.put("/user/{uid}/posts/{pid}", user_handle);
 
     server.listen(PORT, cb);
 }
