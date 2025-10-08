@@ -48,7 +48,30 @@ void Request::parse()
 
     // Parse first line
     method = to_lowercase(first_line_chunks[0]);
+
+    // Parse path and query
     path = first_line_chunks[1];
+
+    std::pair<std::string, std::string> path_parts = split_once(path, "?");
+
+    path = path_parts.first;
+
+    std::string query_str = url_decode(path_parts.second);
+
+    if (!query_str.empty())
+    {
+        std::vector<std::string> query_pairs = split_string(query_str, "&", true);
+        for (const std::string &pair : query_pairs)
+        {
+            if (pair.empty())
+                continue;
+            std::pair<std::string, std::string> kv = split_once(pair, "=");
+            std::string key_decoded = url_decode(kv.first);
+            std::string value_decoded = url_decode(kv.second);
+            query[key_decoded].push_back(value_decoded);
+        }
+    }
+
     http_version = first_line_chunks[2];
 
     headers = Headers();

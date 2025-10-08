@@ -36,12 +36,11 @@ public:
     Headers headers;
     std::map<std::string, std::vector<std::string>> form;
     std::map<std::string, std::vector<UploadedFile>> files;
-    std::string query_params;
-    std::string cookies;
-    std::string protocol;
+    std::map<std::string, std::vector<std::string>> query;
     std::string host;
     std::string port;
     std::string remote_addr;
     std::string remote_port;
     std::string http_version;
+    std::map<std::string, std::string> params;
 };

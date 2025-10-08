@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -11,6 +12,7 @@
 #include "include/Request.h"
 #include "include/Response.h"
 #include "include/cxxserver.h"
+#include "include/utils.h"
 
 Handler::Handler() {}
 
@@ -190,12 +192,49 @@ void Handler::handle(int client_fd, sockaddr_in client_addr)
 
     bool route_found = false;
 
+    // Helper: match route pattern like "/endpoint/{param}" and extract params
+    auto match_route_and_extract = [](const std::string &pattern, const std::string &path,
+                                      std::map<std::string, std::string> &out_params) -> bool
+    {
+        std::vector<std::string> pattern_segments = split_string(pattern, "/");
+        std::vector<std::string> path_segments = split_string(path, "/");
+
+        if (pattern_segments.size() != path_segments.size())
+        {
+            return false;
+        }
+
+        for (size_t i = 0; i < pattern_segments.size(); ++i)
+        {
+            const std::string &p = pattern_segments[i];
+            const std::string &s = path_segments[i];
+
+            if (!p.empty() && p.front() == '{' && p.back() == '}' && p.size() > 2)
+            {
+                std::string name = p.substr(1, p.size() - 2);
+                // store decoded value to be consistent with query decoding
+                std::string value = url_decode(s);
+                out_params[name] = value;
+                continue;
+            }
+
+            if (p != s)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     for (int i = 0; i < handlers.size(); i++)
     {
         Handle hdl = handlers[i];
 
-        if (hdl.path == request.path && hdl.method == request.method)
+        std::map<std::string, std::string> matched_params;
+        if (hdl.method == request.method && match_route_and_extract(hdl.path, request.path, matched_params))
         {
+            request.params = std::move(matched_params);
             hdl.cb(request, response);
             route_found = true;
             break;
